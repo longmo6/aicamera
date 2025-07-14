@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>智能摄像头控制</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        body { font-family: sans-serif; text-align: center; background-color: #f0f0f0; }
+        h1 { color: #333; }
+        img { width: 640px; height: 480px; border: 2px solid #333; margin-bottom: 10px; }
+        .controls { margin: 10px auto; width: 320px; text-align: left; }
+        button { margin: 5px; padding: 8px 16px; font-size: 16px; }
+        label { margin-left: 5px; }
+    </style>
+</head>
+<body>
+    <h1>智能摄像头 Web 控制界面</h1>
+
+    <img src="/video_feed" alt="视频画面">
+
+    <div class="controls">
+        <div>
+            <input type="checkbox" id="face"> <label for="face">人脸识别</label><br>
+            <input type="checkbox" id="track"> <label for="track">人脸追踪</label><br>
+            <input type="checkbox" id="pose"> <label for="pose">姿态识别</label>
+        </div>
+        <hr>
+        <div>
+            <button onclick="sendCmd('Up')">⬆️ Up</button><br>
+            <button onclick="sendCmd('Left')">⬅️ Left</button>
+            <button onclick="sendCmd('Right')">➡️ Right</button><br>
+            <button onclick="sendCmd('Down')">⬇️ Down</button><br>
+            <button onclick="sendCmd('stop')">🛑 Stop</button>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+
+        const flags = ['face', 'track', 'pose'];
+        flags.forEach(flag => {
+            const checkbox = document.getElementById(flag);
+            checkbox.addEventListener('change', () => {
+                socket.emit('toggle_flag', { flag });
+            });
+        });
+
+        socket.on('flag_update', data => {
+            for (const flag in data) {
+                document.getElementById(flag).checked = data[flag];
+            }
+        });
+
+        function sendCmd(key) {
+            socket.emit('send_command', { cmd: 'key', key });
+        }
+    </script>
+</body>
+</html>
